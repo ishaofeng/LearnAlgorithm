@@ -2,6 +2,7 @@
 #include <queue>
 #include <stack>
 #include <cmath>
+#include <cstring>
 using namespace std;
 
 //数据结构
@@ -10,8 +11,10 @@ struct Node
     int data;
     struct Node *left;
     struct Node *right;
+    struct Node *nextRight;
+    struct Node *next;
 
-    Node(int data) : data(data), left(NULL), right(NULL) {}
+    Node(int data) : data(data), left(NULL), right(NULL), nextRight(NULL), next(NULL) {}
 };
 
 //计算一颗数叶子节点的数量
@@ -312,6 +315,521 @@ Node *buildTreeFromPreorderAndInorder(int inorder[], int preorder[], int len)
     return root;
 }
 
+//DoubleTree
+//将一个二叉树转换为DoubleTree, 每一个节点创建一个新节点作为原有节点的副本
+Node *doubleTree(Node *root)
+{
+    if (NULL == root)
+    {
+        return root;
+    }
+
+    stack<Node *> s;
+
+    Node *current = root;
+    while (current != NULL)
+    {
+        s.push(current);
+        current = current->left;
+    }
+
+    Node *duplicateNode = NULL;
+    while (!s.empty())
+    {
+        current = s.top();
+        s.pop();
+
+        cout << current->data << endl;
+
+        //添加新节点
+        duplicateNode = new Node(current->data);
+        duplicateNode->left = current->left;
+        current->left = duplicateNode;
+
+        current = current->right;
+        while (current != NULL)
+        {
+            s.push(current);
+            current = current->left;
+        }
+    }
+
+   return root;
+}
+
+//求二叉树的最大宽度
+//method1: 使用level travel
+int getLevelWidth(Node *root, int level)
+{
+    if (NULL == root)
+    {
+        return 0;
+    }
+
+    if (0 == level)
+    {
+        return 1;
+    }
+
+    return getLevelWidth(root->left, level -1) + getLevelWidth(root->right, level - 1);
+}
+int getMaxWidthOftree(Node *root)
+{
+    if (NULL == root)
+    {
+        return 0;
+    }
+
+    int height = treeHeight(root);
+    int maxWidth = -1, width;
+    for (int i = 0; i < height; ++i)
+    {
+        width = getLevelWidth(root, i);
+        if (maxWidth < width)
+        {
+            maxWidth = width;
+        }
+    }
+
+    return maxWidth;
+}
+
+//method2: 使用先序遍历
+void getMaxWidthOfTreeHelp(Node *root, int count[], int level)
+{
+    if (NULL == root || level < 0)
+    {
+        return ;
+    }
+
+    count[level]++;
+    getMaxWidthOfTreeHelp(root->left, count, level + 1);
+    getMaxWidthOfTreeHelp(root->right, count, level + 1);
+}
+
+int getMaxWidthOftree2(Node *root)
+{
+    if (NULL == root)
+    {
+        return 0;
+    }
+
+    int height = treeHeight(root);
+    int *count = new int[height];
+    memset(count, 0, sizeof(int) * height);
+
+    getMaxWidthOfTreeHelp(root, count, 0);
+
+    int maxWidth = -1;
+    for (int i = 0; i < height; ++i)
+    {
+        if (count[i] > maxWidth)
+        {
+            maxWidth = count[i];
+        }
+    }
+
+    delete [] count;
+
+    return maxWidth;
+}
+
+//给定树上的一个节点获取该节点所在的层次
+int getNodeLevelHelp(Node *root, int value, int level)
+{
+    if (NULL == root)
+    {
+        return 0;
+    }
+    if (root->data == value)
+    {
+        return level;
+    }
+
+    int nodelevel = getNodeLevelHelp(root->left, value, level + 1);
+    if (nodelevel != 0)
+    {
+        return nodelevel;
+    }
+
+    return getNodeLevelHelp(root->right, value, level + 1);
+}
+
+int getNodeLevel(Node *root, int value)
+{
+    return getNodeLevelHelp(root, value, 1);
+}
+
+//给定一个节点，打印该节点的所有祖先节点
+//method1: 自己写的 这个方法麻烦
+int printNodeAncestorHelp(Node *root, int key, int *ancestor, int level)
+{
+    if (NULL == root)
+    {
+        return -1;
+    }
+
+    ancestor[level] = root->data;
+
+    if (root->data == key)
+    {
+        return level;
+    }
+
+    int find = printNodeAncestorHelp(root->left, key, ancestor, level+1);
+    if (find != -1)
+    {
+        return find;
+    }
+
+    return printNodeAncestorHelp(root->right, key, ancestor, level+1);
+}
+
+void printNodeAncestor(Node *root, int key)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    int height = treeHeight(root);
+    int *ancestor = new int[height];
+
+    int find = printNodeAncestorHelp(root, key, ancestor, 0);
+    if (find >= 0)
+    {
+        for (int i = 0; i < find; ++i)
+        {
+            cout << ancestor[i] << " ";
+        }
+    }
+    else
+    {
+        cout << "no this node";
+    }
+    cout << endl;
+
+    delete [] ancestor;
+}
+
+//method2:
+bool printNodeAncestor2(Node *root, int key)
+{
+    if (NULL == root)
+    {
+        return false;
+    }
+
+    if (root->data == key)
+    {
+        return true;
+    }
+
+    if (printNodeAncestor2(root->left, key) || printNodeAncestor2(root->right, key))
+    {
+        cout << root->data << " ";
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//检测一个二叉树是否是加和树
+//加和树是指任意非叶子节点的值等于左右子树的值的加和
+bool checkSumTreeHelp(Node *root, int *sum)
+{
+    if (NULL == root)
+    {
+        *sum = 0;
+        return true;
+    }
+
+    int sumleft = 0, sumright = 0;
+    if (checkSumTreeHelp(root->left, &sumleft) && checkSumTreeHelp(root->right, &sumright))
+    {
+        if ((sumleft + sumright) == root->data)
+        {
+            *sum = root->data << 1;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool checkSumTree(Node *root)
+{
+    int sum;
+    return checkSumTreeHelp(root, &sum);
+}
+
+//使用固定的额外空间连接同一层次的节点
+//在数据结构Node上启用nextRight指针
+void printConnectTree(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    queue<Node *> q;
+    q.push(root);
+
+    cout << "========PRINT CONNECT TREE========" << endl;
+    Node *current = NULL;
+    while (!q.empty())
+    {
+        current = q.front();
+        q.pop();
+
+        if (current->left != NULL)
+        {
+            q.push(current->left);
+        }
+
+        if (current->right != NULL)
+        {
+            q.push(current->right);
+        }
+
+        cout << current->data;
+        if (NULL == current->nextRight)
+        {
+            cout << "  NULL" << endl;
+        }
+        else
+        {
+            cout << "  " << current->nextRight->data << "  #  ";
+        }
+    }
+}
+
+//method1: O(nlgn) 额外空间o(1)
+void connectLevelNodeHelp(Node *root, int level, Node **prev)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    if (0 == level)
+    {
+        if (*prev != NULL)
+        {
+            (*prev)->nextRight = root;
+        }
+
+        *prev = root;
+    }
+    else
+    {
+        connectLevelNodeHelp(root->left, level - 1, prev);
+        connectLevelNodeHelp(root->right, level - 1, prev);
+    }
+}
+Node *connectLevelNode(Node *root)
+{
+    if (NULL == root)
+    {
+        return root;
+    }
+
+    Node *prev = NULL;
+    int height = treeHeight(root);
+    for (int i = 0; i < height; ++i)
+    {
+        prev = NULL;
+        connectLevelNodeHelp(root, i, &prev);
+    }
+}
+
+
+//method2: time o(n)  space: o(lgn)
+void connectLevelNodeHelp1(Node *root, int level, Node **prev)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    if (prev[level] != NULL)
+    {
+        prev[level]->nextRight = root;
+    }
+    prev[level] = root;
+
+    connectLevelNodeHelp(root->left, level + 1, prev);
+    connectLevelNodeHelp(root->right, level + 1, prev);
+}
+
+Node *connectLevelNode1(Node *root)
+{
+    if (NULL == root)
+    {
+        return root;
+    }
+
+    int height = treeHeight(root);
+    Node **prev = new Node*[height];
+    memset(prev, 0, sizeof(Node*) * height);
+
+    connectLevelNodeHelp(root, 0, prev);
+
+    delete [] prev;
+
+    return root;
+}
+
+//设置所有节点的next指向中序遍历的后续节点
+void populateInorderTravel(Node *root, Node **prev)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    populateInorderTravel(root->left, prev);
+
+    if (*prev != NULL)
+    {
+        (*prev)->next = root;
+    }
+    *prev = root;
+
+    populateInorderTravel(root->right, prev);
+}
+
+Node *populateInorderSuccessor(Node *root)
+{
+    if (NULL == root)
+    {
+        return root;
+    }
+
+    Node *prev = NULL;
+
+    populateInorderTravel(root, &prev);
+}
+
+void printPopulateInorderSuccessor(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    printPopulateInorderSuccessor(root->left);
+
+    cout << "Node: " << root->data << "   Next: ";
+    if (root->next != NULL)
+    {
+        cout << root->next->data;
+    }
+    else
+    {
+        cout << "NULL";
+    }
+    cout << endl;
+
+    printPopulateInorderSuccessor(root->right);
+}
+
+//将一个任意树转换为家和树
+//任意一个节点的值为其所有子的加和
+Node *convertToSumTree(Node *root)
+{
+    if (NULL == root)
+    {
+        return root;
+    }
+
+    int sum = 0;
+    if (root->left != NULL)
+    {
+        sum += root->left->data;
+        convertToSumTree(root->left);
+        sum += root->left->data;
+    }
+
+    if (root->right != NULL)
+    {
+        sum += root->right->data;
+        convertToSumTree(root->right);
+        sum += root->right->data;
+    }
+
+    root->data = sum;
+
+    return root;
+}
+
+int convertToSumTree1(Node *root)
+{
+    if (NULL == root)
+    {
+        return 0;
+    }
+
+    int oldvalue = root->data;
+
+    root->data = convertToSumTree1(root->left) +
+        convertToSumTree1(root->right);
+
+    return root->data + oldvalue;
+}
+
+//从中序遍历构建一个特殊的二叉树
+//该二叉树特点: 所有节点的左节点和右节点都小于父节点
+int *indexOfMax(int *inorder, int len)
+{
+    if (NULL == inorder || len < 1)
+    {
+        return NULL;
+    }
+
+    for (int i = 1; i < len; ++i)
+    {
+        if (*(inorder + i - 1) > *(inorder + i))
+        {
+            return inorder + i - 1;
+        }
+
+        if (i == (len -1))
+        {
+            return inorder + i;
+        }
+    }
+
+    return inorder;
+}
+
+Node *constructSpecialTree(int *inorder, int len)
+{
+    if (NULL == inorder || len <= 0)
+    {
+        return NULL;
+    }
+
+    if (1 == len)
+    {
+        return new Node(*inorder);
+    }
+
+    int *max = indexOfMax(inorder, len);
+    int leftlen = max - inorder;
+
+    Node *left = constructSpecialTree(inorder, leftlen);
+    Node *right = constructSpecialTree(inorder + leftlen + 1, len -leftlen - 1);
+
+    Node *root = new Node(*max);
+    root->left = left;
+    root->right = right;
+
+    return root;
+}
+
 
 int main()
 {
@@ -347,7 +865,42 @@ int main()
     Node *tree = buildTreeFromPreorderAndInorder(inorder, preorder , 8);
 
     cout << "中序遍历: ";
-    InorderTravel(tree);
+   InorderTravel(tree);
+
+    cout << "doubleTree:";
+//    tree = doubleTree(root);
+//    InorderTravel(tree);
+
+    cout << "求树的最大宽度: " << getMaxWidthOftree(root) << endl;
+    cout << "求树的最大宽度2: " << getMaxWidthOftree2(root) << endl;
+
+    cout << "获取给定节点的层次: " << getNodeLevel(root, 8) << endl;
+    cout << "打印指定节点的所有父节点: ";
+    printNodeAncestor(root, 8);
+    cout << "打印制定节点的所有父节点2: ";
+    printNodeAncestor2(root, 8);
+    cout << endl;
+
+    cout << "加和树: " << checkSumTree(root) << endl;
+
+    cout << "使用固定额外内存连接树上同一层次上的节点: " << endl;
+    connectLevelNode(root);
+    printConnectTree(root);
+    connectLevelNode1(root);
+    printConnectTree(root);
+
+    cout << "Populate Inorder Successor for all nodes" << endl;
+    populateInorderSuccessor(root);
+    printPopulateInorderSuccessor(root);
+
+    cout << "将一个二叉树转换为加和树" << endl;
+    convertToSumTree(root);
+    InorderTravel(root);
+
+    cout << "从一个中序遍历构建一个特殊的二叉树" << endl;
+    int inorderdata[] = {5, 10, 40, 30, 28};
+    Node *newtree = constructSpecialTree(inorderdata, 5);
+    InorderTravel(newtree);
 
 
     return 0;

@@ -24,6 +24,10 @@
             } \
         })
 
+#define merge(a, b) a##b
+
+#define get(a) #a
+
 typedef struct
 {
     int x;
@@ -77,8 +81,13 @@ void test1(int n)
     struct data { int x[n]; } d;
     printf("%ld\n", sizeof(d));
 }
+
+extern int var1;
 int main()
 {
+    bool a;
+    println("%d", var1);
+    /*
     pp("char", sizeof(char));
     pp("short", sizeof(short));
     pp("int", sizeof(int));
@@ -144,5 +153,10 @@ feng";
     testpaste(x, 2);
 
     println("%s %s %s %s %d", __DATE__, __TIME__, __FILE__, __func__, __LINE__);
+
+    int ia = 10;
+    char *str = get(ia);
+    println("%s", str);
+    */
     return 0;
 }
