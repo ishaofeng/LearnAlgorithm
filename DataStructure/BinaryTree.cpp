@@ -805,6 +805,7 @@ int *indexOfMax(int *inorder, int len)
     return inorder;
 }
 
+
 Node *constructSpecialTree(int *inorder, int len)
 {
     if (NULL == inorder || len <= 0)
@@ -830,6 +831,289 @@ Node *constructSpecialTree(int *inorder, int len)
     return root;
 }
 
+//打印一颗二叉树的边界节点
+//method1: 错误的方法 没有考虑边界的折返
+void boundaryTraversalOfBinaryTree(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    stack<Node *> s;
+    Node *current = root;
+
+    while (current != NULL)
+    {
+        s.push(current);
+        if (current->left != NULL)
+        {
+            cout << current->data << " ";
+        }
+
+        current = current->left;
+    }
+
+    while (!s.empty())
+    {
+        current = s.top();
+        s.pop();
+
+        if (current->left == NULL && current->right == NULL)
+        {
+            cout << current->data << " ";
+        }
+
+        current = current->right;
+        while (current != NULL)
+        {
+            s.push(current);
+            current = current->left;
+        }
+    }
+    current = root->right;
+    while (current != NULL)
+    {
+        if (!(current->right == NULL && current->left == NULL))
+        {
+            cout << current->data << " ";
+        }
+
+        current = current->right;
+    }
+
+    cout << endl;
+}
+//method2:
+//打印左边界
+//打印右边界
+//打印叶子节点
+void travelLeftBoundary(Node *root)
+{
+    while (root != NULL)
+    {
+        if (root->left != NULL)
+        {
+            cout << root->data << " ";
+            root = root->left;
+        }
+        else if (root->right != NULL)
+        {
+            cout << root->data << " ";
+            root = root->right;
+        }
+        else
+        {
+            root = NULL;
+        }
+    }
+}
+
+void travelRightBoundary(Node *root)
+{
+    while (root != NULL)
+    {
+        if (root->right != NULL)
+        {
+            cout << root->data << " ";
+            root = root->right;
+        }
+        else if (root->left != NULL)
+        {
+            cout << root->data << " ";
+            root = root->left;
+        }
+        else
+        {
+            root = NULL;
+        }
+    }
+}
+
+void travelLeavesBoundary(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    if (root->left == NULL && root->right == NULL)
+    {
+        cout << root->data << " ";
+    }
+
+    travelLeavesBoundary(root->left);
+    travelLeavesBoundary(root->right);
+}
+
+void boundaryTraversalOfBinaryTree1(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    cout << root->data << " ";
+    travelLeftBoundary(root->left);
+    travelLeavesBoundary(root);
+    travelRightBoundary(root->right);
+    cout << endl;
+}
+
+//从一个给定的先序遍历和后续遍历构建一个完全二叉树
+Node *constructFullBinary(int *preorder, int *postorder, int preS, int postS, int len)
+{
+    Node *root = new Node(preorder[preS]);
+    if (len == 1)
+    {
+        return root;
+    }
+
+    int left = preorder[preS+1];
+    int leftlen;
+    for (int i = 0; i < len; ++i)
+    {
+        if (postorder[postS+i] == left)
+        {
+            leftlen = i + 1;
+            break;
+        }
+    }
+
+    root->left = constructFullBinary(preorder, postorder, preS + 1, postS, leftlen);
+    root->right = constructFullBinary(preorder, postorder, preS + 1 + leftlen, postS + leftlen, len - leftlen - 1);
+
+    return root;
+}
+Node *constructFullBinaryTreeFromPreorderAndPostorder(int preorder[], \
+        int postorder[], int len)
+{
+    if (preorder == NULL || postorder == NULL || len <= 0)
+    {
+        return NULL;
+    }
+
+    return constructFullBinary(preorder, postorder, 0, 0, len);
+}
+
+//迭代先序遍历
+//method1: 亲 傻了有么有，这个叫中序遍历
+void iterativePreorderTraversal(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    Node *current;
+    while (root != NULL)
+    {
+        current  = root->left;
+        if (current == NULL)
+        {
+            cout << root->data << " ";
+            root = root->right;
+        }
+        else
+        {
+            while (current->right != NULL && current->right != root)
+            {
+                current = current->right;
+            }
+
+            if (current->right == NULL)
+            {
+                current->right = root;
+                root = root->left;
+            }
+            else
+            {
+                cout << root->data << " ";
+                root = root->right;
+                current->right = NULL;
+            }
+        }
+    }
+
+    cout << endl;
+}
+
+//method2: 这才是先序遍历
+void iterativePreorderTraversal1(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    Node *current;
+    stack<Node *> s;
+    s.push(root);
+
+    while (s.empty() == false)
+    {
+        current = s.top();
+        s.pop();
+
+        cout << current->data << " ";
+
+        if (current->right != NULL)
+        {
+            s.push(current->right);
+        }
+
+        if (current->left != NULL)
+        {
+            s.push(current->left);
+        }
+    }
+
+    cout << endl;
+}
+
+//Morris Traversal for Preorder
+//不适用递归和栈先序遍历
+void morrisTravelPreorder(Node *root)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    Node *current;
+    while (root != NULL)
+    {
+        current = root->left;
+        if (current == NULL)
+        {
+            cout << root->data << " ";
+            root = root->right;
+        }
+        else
+        {
+            while (current->right != NULL && current->right != root)
+            {
+                current = current->right;
+            }
+
+            if (current->right == NULL)
+            {
+
+                cout << root->data << " ";
+                current->right = root;
+
+                root = root->left;
+            }
+            else
+            {
+                current->right = NULL;
+                root = root->right;
+            }
+        }
+    }
+
+    cout << endl;
+}
 
 int main()
 {
@@ -839,6 +1123,7 @@ int main()
     root->left->left = new Node(1);
     root->left->right = new Node(3);
     root->right->left = new Node(5);
+    root->right->left->left = new Node(9);
     root->left->left->left = new Node(7);
     root->left->left->left->left = new Node(8);
 
@@ -894,8 +1179,8 @@ int main()
     printPopulateInorderSuccessor(root);
 
     cout << "将一个二叉树转换为加和树" << endl;
-    convertToSumTree(root);
-    InorderTravel(root);
+//    convertToSumTree(root);
+//   InorderTravel(root);
 
     cout << "从一个中序遍历构建一个特殊的二叉树" << endl;
     int inorderdata[] = {5, 10, 40, 30, 28};
@@ -903,5 +1188,23 @@ int main()
     InorderTravel(newtree);
 
 
+    cout << "打印一棵树的边界: " << endl;
+    boundaryTraversalOfBinaryTree(root);
+    boundaryTraversalOfBinaryTree1(root);
+
+    cout  << "从先序遍历和后续遍历构造一颗满二叉树:" << endl;
+    int pre[] = {1, 2, 4, 8, 9, 5, 3, 6, 7};
+    int post[] = {8, 9, 4, 5, 2, 6, 7, 3, 1};
+    Node *fulRoot = constructFullBinaryTreeFromPreorderAndPostorder(pre, post,
+            sizeof(pre) / sizeof(pre[0]));
+    InorderTravel(fulRoot);
+
+    cout << "迭代中序遍历树:" << endl;
+    InorderTravel(root);
+    iterativePreorderTraversal(root);
+    iterativePreorderTraversal1(root);
+
+    cout << "Mirris travel: " << endl;
+    morrisTravelPreorder(root);
     return 0;
 }

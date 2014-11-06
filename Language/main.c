@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
@@ -83,10 +84,10 @@ void test1(int n)
 }
 
 extern int var1;
+#define MAX_LIMIT 20
+
 int main()
 {
-    bool a;
-    println("%d", var1);
     /*
     pp("char", sizeof(char));
     pp("short", sizeof(short));
@@ -158,5 +159,11 @@ feng";
     char *str = get(ia);
     println("%s", str);
     */
+    int a[3][2] = {(0, 1), (2, 3), (4, 5)};
+    int i = 0;
+    for (; i < 3; ++i)
+    {
+        printf("%d %d\n", a[i][0], a[i][1]);
+    }
     return 0;
 }

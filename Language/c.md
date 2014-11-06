@@ -153,3 +153,33 @@
     })
 
 
+###2.0 Scansets in C
+scanf类函数支持使用%[]支持scanset
+
+    #include <stdio.h>
+    int main(void)
+    {
+        char str[128];
+        printf("Enter a string: ");
+        //只支持A-Z的大写字符
+        scanf("%[A-Z]s", str);
+
+        printf("You entered: %s\n", str);
+
+        return 0;
+    }
+
+    //非o字符
+    scanf("%[^o]s", str);
+
+    //实现gets功能
+    scanf("%[^\n]s", str);
+    
+gets()输入函数不进行任何测试，gets()一直输入遇到一个新的换行符为止，如果buffer的大小过小那么就会
+出现越界，一般此处使用fgets比较安全`fgets(str, MAX_LIMIT, stdin)`
+
+puts(str)输出字符并且将光标移动到下一行, `fputs(str, stdout)`输出字符串并且不移动光标到下一行
+
+
+
+
