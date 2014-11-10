@@ -3,6 +3,7 @@
 #include <stack>
 #include <cmath>
 #include <cstring>
+#include <map>
 using namespace std;
 
 //数据结构
@@ -244,7 +245,41 @@ void InorderTravel(Node *root)
 
     cout << endl;
 }
+void InorderTravel1(Node *root)
+{
+    if (root == NULL)
+    {
+        return ;
+    }
 
+    stack<Node *> s;
+    Node *current = root;
+    bool bDone = false;
+
+    while (!bDone)
+    {
+        if (current != NULL)
+        {
+            s.push(current);
+            current = current->left;
+        }
+        else
+        {
+            if (!s.empty())
+            {
+                current = s.top();
+                s.pop();
+
+                cout << current->data << " ";
+                current = current->right;
+            }
+            else
+            {
+                bDone = true;
+            }
+        }
+    }
+}
 //不使用递归也不使用栈中序遍历树 ***
 void MorrisTravel(Node *root)
 {
@@ -1115,6 +1150,262 @@ void morrisTravelPreorder(Node *root)
     cout << endl;
 }
 
+//LargestIndependentSetProblem
+//一棵树中最大的独立集合
+//独立集合中的任意两个节点都没有边相连接
+//method1: 动态规划, 递归处理存在重复计算, 时间复杂度是指数级别的
+int largestIndependentSet(Node *root)
+{
+    if (root == NULL)
+    {
+        return 0;
+    }
+
+    if (root->left == NULL || root->right == NULL)
+    {
+        return 1;
+    }
+
+    //root节点是独立集合的节点
+    int case1 = 1;
+    if (root->left != NULL)
+    {
+        case1 += largestIndependentSet(root->left->left);
+        case1 += largestIndependentSet(root->left->right);
+    }
+    if (root->right != NULL)
+    {
+        case1 += largestIndependentSet(root->right->left);
+        case1 += largestIndependentSet(root->right->right);
+    }
+
+    //root节点不是独立集合的节点
+    int case2 = 0;
+    case2 += largestIndependentSet(root->left);
+    case2 += largestIndependentSet(root->right);
+
+    return max(case1, case2);
+}
+//method2: 动态规划, 递归处理, 去除重复计算，时间复杂度是, O(n)
+int LargestIndependentSet1_Help(Node *root, map<Node *, int> &lissMap)
+{
+    if (root == NULL)
+    {
+        return 0;
+    }
+
+    if (lissMap.find(root) != lissMap.end())
+    {
+        return lissMap[root];
+    }
+
+    if (root->left == NULL || root->right == NULL)
+    {
+        return (lissMap[root] = 1);
+    }
+
+    //root节点是独立集合的节点
+    int case1 = 1;
+    if (root->left != NULL)
+    {
+        case1 += largestIndependentSet(root->left->left);
+        case1 += largestIndependentSet(root->left->right);
+    }
+    if (root->right != NULL)
+    {
+        case1 += largestIndependentSet(root->right->left);
+        case1 += largestIndependentSet(root->right->right);
+    }
+
+    //root节点不是独立集合的节点
+    int case2 = 0;
+    case2 += largestIndependentSet(root->left);
+    case2 += largestIndependentSet(root->right);
+
+    return (lissMap[root] = max(case1, case2));
+
+}
+int LargestIndependentSet1(Node *root)
+{
+    map<Node *, int> lissMap;
+    return LargestIndependentSet1_Help(root, lissMap);
+}
+
+//打印一个给定字符串的排列
+void swap(char &a, char &b)
+{
+    if (a == b)
+    {
+        return ;
+    }
+    a ^= b;
+    b ^= a;
+    a ^= b;
+}
+void printPermutationsHelp(string &s, int start)
+{
+    if ((start + 1) == s.size())
+    {
+        cout << s << endl;
+        return ;
+    }
+
+    for (int i = start; i < s.size(); ++i)
+    {
+        swap(s[start], s[i]);
+        printPermutationsHelp(s, start+1);
+        swap(s[start], s[i]);
+    }
+}
+void printPermutations(string s)
+{
+    printPermutationsHelp(s, 0);
+}
+
+
+//迭代后续遍历
+void iterativePostorderTravel(Node *root)
+{
+    if (root == NULL)
+    {
+        return ;
+    }
+
+    stack<Node *> ss;
+    stack<Node *> ps;
+    Node *current = root;
+
+    ss.push(root);
+
+    while (!ss.empty())
+    {
+        current = ss.top();
+        ss.pop();
+
+        ps.push(current);
+
+        if (current->left != NULL)
+        {
+            ss.push(current->left);
+        }
+
+        if (current->right != NULL)
+        {
+            ss.push(current->right);
+        }
+    }
+
+    while (!ps.empty())
+    {
+        current == ps.top();
+        ps.pop();
+        cout << current->data;
+    }
+}
+void iterativePostorderTravel1(Node *root)
+{
+    if (root == NULL)
+    {
+        return ;
+    }
+
+    stack<Node *> s;
+    bool bDone = false;
+    while (!bDone)
+    {
+        if (root != NULL)
+        {
+            if (root->right != NULL)
+            {
+                s.push(root->right);
+            }
+
+            s.push(root);
+            root = root->left;
+        }
+        else
+        {
+            if (!s.empty())
+            {
+                root = s.top();
+                s.pop();
+
+                if (root->right != NULL && root->right == s.top())
+                {
+                    Node *right = s.top();
+                    s.pop();
+
+                    s.push(root);
+                    root = right;
+                }
+                else
+                {
+                    cout << root->data << " ";
+                    root = NULL;
+                }
+            }
+            else
+            {
+                bDone = true;
+            }
+        }
+    }
+
+    cout << endl;
+}
+
+//将一个二叉树转换为一个双端链表
+//链表的顺序与二叉树中序遍历的顺序相同
+Node *convertBinaryToDoublyLinkedList(Node *root)
+{
+    if (root == NULL)
+    {
+        return NULL;
+    }
+
+    stack<Node *> s;
+
+    bool bDone = false;
+    Node *current = root;
+    Node head(0);
+    Node *tail = &head;
+    while (!bDone)
+    {
+        if (current != NULL)
+        {
+            s.push(current);
+            current = current->left;
+        }
+        else
+        {
+            if (!s.empty())
+            {
+                current = s.top();
+                s.pop();
+
+                tail->right = current;
+                tail = tail->right;
+                current = current->right;
+            }
+            else
+            {
+                bDone = true;
+            }
+        }
+    }
+
+    return head.right;
+}
+void printDoublyLinkList(Node *head)
+{
+    while (head != NULL)
+    {
+        cout << head->data << " ";
+        head = head->right;
+    }
+    cout << endl;
+}
+
 int main()
 {
     Node *root = new Node(4);
@@ -1206,5 +1497,26 @@ int main()
 
     cout << "Mirris travel: " << endl;
     morrisTravelPreorder(root);
+
+    cout << "LargestIndependentSetProblem: " << endl;
+    Node *largestTree = new Node(10);
+    largestTree->left = new Node(20);
+    largestTree->left->left = new Node(40);
+    largestTree->left->right = new Node(50);
+    largestTree->left->right->left = new Node(70);
+    largestTree->left->right->right = new Node(80);
+    largestTree->right = new Node(30);
+    largestTree->right->right = new Node(60);
+    cout << largestIndependentSet(largestTree);
+    cout << LargestIndependentSet1(largestTree);
+    cout << endl;
+
+    cout << "打印一个字符串的排列: " << endl;
+    string str("str");
+    printPermutations(str);
+
+    cout << "将一个二叉树转换为二叉链表: ";
+    largestTree = convertBinaryToDoublyLinkedList(largestTree);
+    printDoublyLinkList(largestTree);
     return 0;
 }
