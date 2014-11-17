@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstring>
 #include <map>
+#include <algorithm>
 using namespace std;
 
 //数据结构
@@ -1406,6 +1407,120 @@ void printDoublyLinkList(Node *head)
     cout << endl;
 }
 
+//不使用递归，打印一个二叉树的祖先节点
+void printTheAncestorNodes(Node *root, int key)
+{
+    if (NULL == root)
+    {
+        return ;
+    }
+
+    stack<Node *> s;
+    Node *current = root;
+    bool done = false;
+
+    while (!done)
+    {
+        if (current != NULL)
+        {
+            if (current->data == key)
+            {
+                break;
+            }
+            s.push(current);
+            current = current->left;
+        }
+        else
+        {
+
+            if (!s.empty())
+            {
+                current = s.top();
+                if (current->right == NULL)
+                {
+                    s.pop();
+                    while (!s.empty() && s.top()->right == current)
+                    {
+                        current = s.top();
+                        s.pop();
+                    }
+
+                }
+                current = s.empty() ? NULL : s.top()->right;
+            }
+            else
+            {
+                done = true;
+            }
+
+        }
+    }
+
+    //找到节点，打印所有信息
+    while (!s.empty())
+    {
+        current = s.top();
+        s.pop();
+
+        cout << current->data << " ";
+    }
+    cout << endl;
+
+}
+
+//从一颗二叉树给定的先序和中序遍历打印后序遍历
+void printPostorderFromInorderAndPreorder(int inorder[], int preorder[], int len)
+{
+    if (inorder == NULL || preorder == NULL || len <= 0)
+    {
+        return ;
+    }
+
+    if (len > 1)
+    {
+        int *p = find(inorder, inorder + len, preorder[0]);
+        int llen = p - inorder;
+        printPostorderFromInorderAndPreorder(inorder, preorder + 1, llen);
+        printPostorderFromInorderAndPreorder(inorder + llen + 1, preorder + 1 + llen, len - llen - 1);
+    }
+    cout << preorder[0] << " ";
+}
+
+//将一个二叉树的叶子提取出来，转换为双端列表
+void extractLeavesToDoublyLinkedListHelper(Node *root, Node *&parent, Node *&tail)
+{
+    if (root == NULL)
+    {
+        return ;
+    }
+
+    if (root->left == NULL && root->right == NULL)
+    {
+        tail->right = root;
+        tail = tail->right ;
+
+        parent = NULL;
+        return ;
+    }
+
+    if (root->left != NULL)
+    {
+        extractLeavesToDoublyLinkedListHelper(root->left, root->left, tail);
+    }
+    if (root->right != NULL)
+    {
+        extractLeavesToDoublyLinkedListHelper(root->right, root->right, tail);
+    }
+
+}
+Node *extractLeavesToDoublyLinkedList(Node *root)
+{
+    Node head(0);
+    Node *tail = &head;
+    extractLeavesToDoublyLinkedListHelper(root, root, tail);
+
+    return head.right;
+}
 int main()
 {
     Node *root = new Node(4);
@@ -1518,5 +1633,18 @@ int main()
     cout << "将一个二叉树转换为二叉链表: ";
     largestTree = convertBinaryToDoublyLinkedList(largestTree);
     printDoublyLinkList(largestTree);
+
+    cout << "打印一个节点的所有祖先节点: ";
+    printTheAncestorNodes(root, 5);
+
+    cout << "从一颗二叉树给定的先序和中序遍历打印后序遍历:";
+    int in1[] = {4, 2, 5, 1, 3, 6};
+    int pre1[] = {1, 2, 4, 5, 3, 6};
+    printPostorderFromInorderAndPreorder(in1, pre1, sizeof(in1) / sizeof(in1[0]));
+    cout << endl;
+
+    cout << "Extract Leaves of a binary tree in a doubly linked list: ";
+    Node *newhead = extractLeavesToDoublyLinkedList(root);
+    printDoublyLinkList(newhead);
     return 0;
 }
