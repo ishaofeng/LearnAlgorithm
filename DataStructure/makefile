@@ -1,2 +1,2 @@
-main : BinaryTree.cpp 
-	g++ BinaryTree.cpp  -o main -g
+main : BinarySearchTree.cpp 
+	g++ BinarySearchTree.cpp  -o main -g

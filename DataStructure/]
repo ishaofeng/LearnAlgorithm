@@ -1,0 +1,157 @@
+#include <iostream>
+#include <vector>
+#include <stack>
+
+using namespace std;
+
+/*
+ * 二叉搜索树:
+ * 1. 一个节点的左子树只包含节点key值小于当前节点的节点
+ * 2. 一个节点的右子树只包含节点key值大于当前节点的节点
+ * 3. 左右子树必须也是一个二叉搜索树
+ * 4. 不能存在重复的节点
+ */
+
+struct Node
+{
+    int key;
+    Node *left;
+    Node *right;
+
+    Node() : key(-1), left(NULL), right(NULL) {}
+    Node(int key) : key(key), left(NULL), right(NULL) {}
+};
+
+
+//搜索操作
+Node *search(Node *root, int key)
+{
+    if (root == NULL)
+    {
+        return root;
+    }
+
+    if (root->key == key)
+    {
+        return root;
+    }
+    else if (key > root->key)
+    {
+        return search(root->right, key);
+    }
+    else
+    {
+        return search(root->left, key);
+    }
+}
+
+//插入操作
+Node *insert(Node *root, int key)
+{
+    if (root == NULL)
+    {
+        return new Node(key);
+    }
+
+    if (key < root->key)
+    {
+        root->left = insert(root->left, key);
+    }
+    else if (key > root->key)
+    {
+        root->right = insert(root->right, key);
+    }
+
+    return root;
+}
+
+//删除操作
+//1. 删除的节点是叶子节点
+//2. 删除的节点只有一个孩子
+//3. 删除的节点有两个孩子
+Node *deleteNodeHelp(Node *root, Node *&proot, int key)
+{
+    if (root == NULL)
+    {
+        return NULL;
+    }
+
+    if (root->key > key)
+    {
+        return deleteNodeHelp(root->left, root->left, key);
+    }
+    else if (root->key > key)
+    {
+        return deleteNodeHelp(root->right, root->right, key);
+    }
+    else
+    {
+        cout << "delete: " << root->key << endl;
+        if (root->left == NULL && root->right == NULL)
+        {
+            proot = NULL;
+        }
+        else if (root->left == NULL || root->right == NULL)
+        {
+            proot = root->left == NULL ? root->right : root->left;
+        }
+        else
+        {
+            //找到root的下一个节点
+            Node *successor = root->right, *psuccessor = root;
+            while (successor->left != NULL)
+            {
+                psuccessor = successor;
+                successor = successor->left;
+            }
+
+            successor->left = root->left;
+            if (psuccessor != root)
+            {
+                psuccessor->left = successor->right;
+                successor->right = root->right;
+            }
+            proot = successor;
+        }
+        delete root;
+        return proot;
+    }
+}
+Node *deleteNode(Node *root, int key)
+{
+    if (root == NULL)
+    {
+        return NULL;
+    }
+    Node *proot = NULL;
+    return deleteNodeHelp(root, proot, key);
+}
+
+void printInorder(Node *root)
+{
+    if (root == NULL)
+    {
+        return ;
+    }
+
+    printInorder(root->left);
+    cout << root->key << " ";
+    printInorder(root->right);
+}
+
+int main()
+{
+    Node *root = NULL;
+    int data[] = {10, 2, 5, 3, 7, 1, 9, 6};
+    int len = sizeof(data) / sizeof(data[0]);
+    for (int i = 0; i < len; ++i)
+    {
+        root = insert(root, data[i]);
+    }
+
+    printInorder(root);
+    cout << endl;
+    deleteNode(root, 1);
+    printInorder(root);
+
+}
