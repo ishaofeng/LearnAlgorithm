@@ -162,6 +162,7 @@ Node *predecessor(Node *root)
 }
 
 //中序遍历的后缀节点
+//这样实现存在问题
 Node *successor(Node *root)
 {
     Node *current = root->right;
@@ -193,6 +194,7 @@ bool isBST(Node *root)
 }
 */
 
+//可以选择使用迭代版本的中序遍历
 bool isBST(Node *root)
 {
     //使用一个辅助函数的方式更好
