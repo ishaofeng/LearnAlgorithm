@@ -1,2 +1,2 @@
-main : BinarySearchTree.cpp 
-	g++ BinarySearchTree.cpp  -o main -g
+main : Array.cpp 
+	g++ -std=c++0x Array.cpp  -o main -g
